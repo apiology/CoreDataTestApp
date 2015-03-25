@@ -2,18 +2,45 @@
 //  ViewController.swift
 //  CoreDataTestApp
 //
-//  Created by Vince Broz on 3/25/15.
-//  Copyright (c) 2015 Vince Broz. All rights reserved.
+//  Based on http://www.raywenderlich.com/85578/first-core-data-app-using-swift
 //
 
 import UIKit
+import CoreData
 
 class ViewController: UIViewController, UITableViewDataSource {
 
     @IBOutlet weak var tableView: UITableView!
     
     //Insert below the tableView IBOutlet
-    var names = [String]()
+    var people = [NSManagedObject]()
+    
+    func saveName(name: String) {
+        //1
+        let appDelegate =
+        UIApplication.sharedApplication().delegate as AppDelegate
+        
+        let managedContext = appDelegate.managedObjectContext!
+        
+        //2
+        let entity =  NSEntityDescription.entityForName("Person",
+            inManagedObjectContext:
+            managedContext)
+        
+        let person = NSManagedObject(entity: entity!,
+            insertIntoManagedObjectContext:managedContext)
+        
+        //3
+        person.setValue(name, forKey: "name")
+        
+        //4
+        var error: NSError?
+        if !managedContext.save(&error) {
+            println("Could not save \(error), \(error?.userInfo)")
+        }  
+        //5
+        people.append(person)
+    }
     
     @IBAction func addName(sender: AnyObject) {
         var alert = UIAlertController(title: "New name",
@@ -24,10 +51,10 @@ class ViewController: UIViewController, UITableViewDataSource {
             style: .Default) { (action: UIAlertAction!) -> Void in
                 
                 let textField = alert.textFields![0] as UITextField
-                self.names.append(textField.text)
+                self.saveName(textField.text)
                 self.tableView.reloadData()
         }
-        
+
         let cancelAction = UIAlertAction(title: "Cancel",
             style: .Default) { (action: UIAlertAction!) -> Void in
         }
@@ -59,7 +86,7 @@ class ViewController: UIViewController, UITableViewDataSource {
     // MARK: UITableViewDataSource
     func tableView(tableView: UITableView,
         numberOfRowsInSection section: Int) -> Int {
-            return names.count
+            return people.count
     }
     
     func tableView(tableView: UITableView,
@@ -70,10 +97,36 @@ class ViewController: UIViewController, UITableViewDataSource {
             tableView.dequeueReusableCellWithIdentifier("Cell")
                 as UITableViewCell
             
-            cell.textLabel!.text = names[indexPath.row]
+            let person = people[indexPath.row]
+            cell.textLabel!.text = person.valueForKey("name") as String?
             
             return cell
     }
-
+    
+    override func viewWillAppear(animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        //1
+        let appDelegate =
+        UIApplication.sharedApplication().delegate as AppDelegate
+        
+        let managedContext = appDelegate.managedObjectContext!
+        
+        //2
+        let fetchRequest = NSFetchRequest(entityName:"Person")
+        
+        //3
+        var error: NSError?
+        
+        let fetchedResults =
+        managedContext.executeFetchRequest(fetchRequest,
+            error: &error) as [NSManagedObject]?
+        
+        if let results = fetchedResults {
+            people = results
+        } else {
+            println("Could not fetch \(error), \(error!.userInfo)")
+        }
+    }
 }
 

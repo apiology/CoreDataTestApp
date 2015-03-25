@@ -2,8 +2,7 @@
 //  AppDelegate.swift
 //  CoreDataTestApp
 //
-//  Created by Vince Broz on 3/25/15.
-//  Copyright (c) 2015 Vince Broz. All rights reserved.
+//  Based on http://www.raywenderlich.com/85578/first-core-data-app-using-swift
 //
 
 import UIKit
